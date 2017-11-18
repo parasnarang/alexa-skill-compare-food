@@ -1,0 +1,184 @@
+{
+  "languageModel": {
+    "types": [
+      {
+        "name": "FOOD_TYPE",
+        "values": [
+          {
+            "id": null,
+            "name": {
+              "value": "tomato",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "potato",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "rice",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "wheat",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "chicken",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "orange",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "apple",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "cheese",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "butter",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "ghee",
+              "synonyms": []
+            }
+          }
+        ]
+      }
+    ],
+    "intents": [
+      {
+        "name": "AMAZON.CancelIntent",
+        "samples": []
+      },
+      {
+        "name": "AMAZON.HelpIntent",
+        "samples": []
+      },
+      {
+        "name": "AMAZON.StopIntent",
+        "samples": []
+      },
+      {
+        "name": "CompareAnyFood",
+        "samples": [
+          "compare any food",
+          "compare any two foods",
+          "company any food items",
+          "company any two food items",
+          "match any two food items"
+        ],
+        "slots": []
+      },
+      {
+        "name": "CompareFood",
+        "samples": [
+          "compare {foodone} with {foodtwo} ",
+          "compare {foodone} and {foodtwo}",
+          "match {foodone} with {foodtwo}",
+          "how does {foodone} compare to {foodtwo}",
+          "which is better {foodone} or {foodtwo}"
+        ],
+        "slots": [
+          {
+            "name": "foodone",
+            "type": "FOOD_TYPE"
+          },
+          {
+            "name": "foodtwo",
+            "type": "FOOD_TYPE"
+          }
+        ]
+      }
+    ],
+    "invocationName": "compare food"
+  },
+  "prompts": [
+    {
+      "id": "Elicit.Intent-CompareFood.IntentSlot-foodone",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "Which one is the first food?"
+        },
+        {
+          "type": "PlainText",
+          "value": "Please specify food one"
+        }
+      ]
+    },
+    {
+      "id": "Elicit.Intent-CompareFood.IntentSlot-foodtwo",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "Which one is second food?"
+        },
+        {
+          "type": "PlainText",
+          "value": "Please specify food two"
+        }
+      ]
+    }
+  ],
+  "dialog": {
+    "intents": [
+      {
+        "name": "CompareFood",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [
+          {
+            "name": "foodone",
+            "type": "FOOD_TYPE",
+            "elicitationRequired": true,
+            "confirmationRequired": false,
+            "prompts": {
+              "elicitation": "Elicit.Intent-CompareFood.IntentSlot-foodone"
+            }
+          },
+          {
+            "name": "foodtwo",
+            "type": "FOOD_TYPE",
+            "elicitationRequired": true,
+            "confirmationRequired": false,
+            "prompts": {
+              "elicitation": "Elicit.Intent-CompareFood.IntentSlot-foodtwo"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

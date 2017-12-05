@@ -1,5 +1,5 @@
 'use strict';
-let http = require('http');
+let http = require('https');
 
 
 // --------------- Helpers that build all of the responses -----------------------
@@ -41,14 +41,29 @@ function buildResponse(sessionAttributes, speechletResponse) {
 function getWelcomeResponse(callback) {
     // If we wanted to initialize the session to have some attributes we could add those here.
     const sessionAttributes = {};
-    const cardTitle = 'Welcome to Compare Food';
-    const cardOutput = 'Please tell me which foods do you want to compare.';
-    const speechOutput = 'Welcome to Compare Food. ' +
-        'Please tell me which foods you want to compare.';
+    const cardTitle = 'Welcome!';
+    const cardOutput = 'Welcome to Cryptocurrency To Rupees. You can ask me for the latest price of Ethereum in Indian Rupees.';
+    const speechOutput = 'Welcome to Cryptocurrency To Rupees. You can ask me for the latest price of Ethereum in Indian Rupees.';
 
-		// If the user either does not reply to the welcome message or says something that is not
+        // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
-    const repromptText = 'Which food do you want to compare? Say like tomato and potato';
+    const repromptText = 'Ask me for the latest price of Ethereum.';
+    const shouldEndSession = false;
+
+    callback(sessionAttributes,
+        buildSpeechletResponse(cardTitle, cardOutput, speechOutput, repromptText, shouldEndSession));
+}
+
+function getHelpResponse(callback) {
+    // If we wanted to initialize the session to have some attributes we could add those here.
+    const sessionAttributes = {};
+    const cardTitle = 'Welcome!';
+    const cardOutput = 'Ask me for the latest price of Ethereum in Indian Rupees.';
+    const speechOutput = 'Ask me for the latest price of Ethereum in Indian Rupees.';
+
+        // If the user either does not reply to the welcome message or says something that is not
+    // understood, they will be prompted again with this text.
+    const repromptText = 'Ask me for the latest price of Ethereum.';
     const shouldEndSession = false;
 
     callback(sessionAttributes,
@@ -57,7 +72,7 @@ function getWelcomeResponse(callback) {
 
 function handleSessionEndRequest(callback) {
     const cardTitle = 'Bye!';
-    const speechOutput = 'Thank you for trying Compare Food. Have a nice day!';
+    const speechOutput = 'Thank you for trying Cryptocurrency To Rupees. Have a nice day!';
 
     // Setting this to true ends the session and exits the skill.
     const shouldEndSession = true;
@@ -65,208 +80,49 @@ function handleSessionEndRequest(callback) {
     callback({}, buildSpeechletResponse(cardTitle, speechOutput, speechOutput, null, shouldEndSession));
 }
 
+
 /**
- * Compare two food items based on nutrition
+ * Get cryptocurrency price
  */
-function compareFoods(intent, session, callback) {
-    let food1 = intent.slots.foodone.value;
-    let food2 = intent.slots.foodtwo.value;
-    const repromptText = null;
+function getPrice(intent, session, callback) {
+    const repromptText = 'Would you like to check the price again ?';
     const sessionAttributes = {};
     let shouldEndSession = false;
     let cardOutput = '';
     let speechOutput = '';
 
-    console.log(`FOOD 1: ${food1}`);
-    console.log(`FOOD 2: ${food2}`);
-    if (food1 && food2) {
-        const url1 = 'http://indianfoodfacts-api.herokuapp.com/api/food/' + food1;
+        const url1 = 'https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=INR';
         console.log(`URL: ${url1}`);
-
-        const url2 = 'http://indianfoodfacts-api.herokuapp.com/api/food/' + food2;
-        console.log(`URL: ${url2}`);
 
         http.get(url1, function(res) {
             res.on('data', function (body1) {
+                let response = '';
+                let askPrice = '';
+                console.log(`Raw BODY: ${body1}`);
                 body1 = JSON.parse(body1);
                 console.log('BODY 1: ' + body1);
-
-                http.get(url2, function(res) {
-                    res.on('data', function (body2) {
-                        body2 = JSON.parse(body2);
-                        console.log('BODY 2: ' + body2);
-    
-                        if(body1.name && body2.name) {
-                            console.log('Response from CompareFood 1: ' + body1.carbInGm);
-                            console.log('Response from CompareFood 2: ' + body2.carbInGm);
-                            
-                            let body1MoreProtein = Number(body1.proteinInGm) > Number(body2.proteinInGm);
-                            let body1MoreFat = Number(body1.fatInGm) > Number(body2.fatInGm);
-                            let body1MoreCarb = Number(body1.carbInGm) > Number(body2.carbInGm);
-                            console.log('P: ', body1MoreProtein)
-                            console.log('F: ', body1MoreFat)
-                            console.log('C: ', body1MoreCarb)
-                            
-                            let proteinMsg = '';
-                            if(body1MoreProtein || body1MoreFat || body1MoreCarb) {
-                                if(body1MoreProtein && body1MoreFat && body1MoreCarb) {
-                                    proteinMsg = `${food1} is better than ${food2} in all respect`;
-                                } else if(body1MoreProtein && body1MoreFat) {
-                                    proteinMsg = `${food1} has more protein and fat than ${food2}`;
-                                } else if(body1MoreProtein && body1MoreCarb) {
-                                    proteinMsg = `${food1} has more protein and carbs than ${food2}`;
-                                } else if(body1MoreCarb && body1MoreFat) {
-                                    proteinMsg = `${food1} has more carbs and fat than ${food2}`;
-                                } else if(body1MoreProtein) {
-                                    proteinMsg = `${food1} has more protein than ${food2}`;
-                                } else if(body1MoreFat) {
-                                    proteinMsg = `${food1} has more fat than ${food2}`;
-                                } else if(body1MoreCarb) {
-                                    proteinMsg = `${food1} has more carbs than ${food2}`;
-                                }
-                            } else {
-                                proteinMsg = `${food2} is better than ${food1} in all respect`
-                            }
-
-                            cardOutput = proteinMsg;
-                            speechOutput = proteinMsg;
-                        } else {
-                            console.log('Response from CompareFood: Food details not found');
-                            speechOutput = `Nutrition facts of "${food1}" and "${food2}" are not found. Please try some other food.`;
-                            cardOutput = speechOutput;
-                        }
-                        shouldEndSession = true;
-        
-                        callback(sessionAttributes,
-                            buildSpeechletResponse(`${food1} vs ${food2}`, cardOutput, speechOutput, repromptText, shouldEndSession));
-                    });
-        
-                }).on('error', function(e) {
-                    speechOutput = `We could not connect to the remote server to get data about "${food2}". Sorry!`;
-                    cardOutput = speechOutput;
-                    console.log("Got error: " + e.message);
-        
-                    callback(sessionAttributes,
-                        buildSpeechletResponse("Error connecting to Indian Food server", cardOutput, speechOutput, repromptText, shouldEndSession));
-                });
-    
+                askPrice = body1[0].price_inr;
+                console.log('BODY 1 ask: ' + askPrice);
+                response = `Current price for Ethereum in INR is Rupees ${askPrice}`;
+                cardOutput = response;
+                speechOutput = response;
+                // this.emit(':tellWithCard', speechOutput, "Cryptocurrency Rupee", cardOutput);
+                shouldEndSession = true;
+                callback(sessionAttributes,
+                            buildSpeechletResponse(`Cryptocurrency to Rupees`, cardOutput, speechOutput, repromptText, shouldEndSession));
             });
-
+        
         }).on('error', function(e) {
-            speechOutput = `We could not connect to the remote server to get data about "${food1}". Sorry!`;
-            cardOutput = speechOutput;
-            console.log("Got error: " + e.message);
-
-            callback(sessionAttributes,
-                buildSpeechletResponse("Error connecting to Indian Food server", cardOutput, speechOutput, repromptText, shouldEndSession));
-        });
-
-
-    } else {
-        speechOutput = "I'm not sure which food items you want to compare";
-        cardOutput = speechOutput;
-
-        callback(sessionAttributes,
-            buildSpeechletResponse('Food name not recognised', cardOutput, speechOutput, repromptText, shouldEndSession));    }
-}
-
-
-/**
- * Compare any two food items
- */
-function compareAnyTwoFoods(intent, session, callback) {
-    const repromptText = null;
-    const sessionAttributes = {};
-    let shouldEndSession = false;
-    let cardOutput = '';
-    let speechOutput = '';
-
-        const url1 = 'http://indianfoodfacts-api.herokuapp.com/api/anyfood';
-        console.log(`URL: ${url1}`);
-
-        const url2 = 'http://indianfoodfacts-api.herokuapp.com/api/anyfood';
-        console.log(`URL: ${url2}`);
-
-        http.get(url1, function(res) {
-            res.on('data', function (body1) {
-                body1 = JSON.parse(body1);
-                console.log('BODY 1: ' + body1);
-
-                http.get(url2, function(res) {
-                    res.on('data', function (body2) {
-                        body2 = JSON.parse(body2);
-                        console.log('BODY 2: ' + body2);
+                speechOutput = `We could not connect to the remote server to get data. Sorry!`;
+                cardOutput = speechOutput;
+                console.log("Got error: " + e.message);
     
-                        let food1 = body1.name;
-                        let food2 = body2.name;
-                        if(body1.name && body2.name) {
-                            console.log('Response from CompareFood 1: ' + body1.carbInGm);
-                            console.log('Response from CompareFood 2: ' + body2.carbInGm);
-                            
-                            let body1MoreProtein = Number(body1.proteinInGm) > Number(body2.proteinInGm);
-                            let body1MoreFat = Number(body1.fatInGm) > Number(body2.fatInGm);
-                            let body1MoreCarb = Number(body1.carbInGm) > Number(body2.carbInGm);
-                            console.log('P: ', body1MoreProtein)
-                            console.log('F: ', body1MoreFat)
-                            console.log('C: ', body1MoreCarb)
-                            
-                            let proteinMsg = '';
-                            if(body1MoreProtein || body1MoreFat || body1MoreCarb) {
-                                if(body1MoreProtein && body1MoreFat && body1MoreCarb) {
-                                    proteinMsg = `${food1} is better than ${food2} in all respect`;
-                                } else if(body1MoreProtein && body1MoreFat) {
-                                    proteinMsg = `${food1} has more protein and fat than ${food2}`;
-                                } else if(body1MoreProtein && body1MoreCarb) {
-                                    proteinMsg = `${food1} has more protein and carbs than ${food2}`;
-                                } else if(body1MoreCarb && body1MoreFat) {
-                                    proteinMsg = `${food1} has more carbs and fat than ${food2}`;
-                                } else if(body1MoreProtein) {
-                                    proteinMsg = `${food1} has more protein than ${food2}`;
-                                } else if(body1MoreFat) {
-                                    proteinMsg = `${food1} has more fat than ${food2}`;
-                                } else if(body1MoreCarb) {
-                                    proteinMsg = `${food1} has more carbs than ${food2}`;
-                                }
-                            } else {
-                                proteinMsg = `${food2} is better than ${food1} in all respect`
-                            }
-
-                            cardOutput = proteinMsg;
-                            speechOutput = proteinMsg;
-                        } else {
-                            console.log('Response from CompareFood: Food details not found');
-                            speechOutput = `Nutrition facts of "${food1}" and "${food2}" are not found. Please try some other food.`;
-                            cardOutput = speechOutput;
-                        }
-                        shouldEndSession = true;
-        
-                        callback(sessionAttributes,
-                            buildSpeechletResponse(`${food1} vs ${food2}`, cardOutput, speechOutput, repromptText, shouldEndSession));
-                    });
-        
-                }).on('error', function(e) {
-                    speechOutput = `We could not connect to the remote server to get data. Sorry!`;
-                    cardOutput = speechOutput;
-                    console.log("Got error: " + e.message);
-        
-                    callback(sessionAttributes,
-                        buildSpeechletResponse("Error connecting to Indian Food server", cardOutput, speechOutput, repromptText, shouldEndSession));
-                });
-    
-            });
-
-        }).on('error', function(e) {
-            speechOutput = `We could not connect to the remote server to get data. Sorry!`;
-            cardOutput = speechOutput;
-            console.log("Got error: " + e.message);
-
-            callback(sessionAttributes,
-                buildSpeechletResponse("Error connecting to Indian Food server", cardOutput, speechOutput, repromptText, shouldEndSession));
+                // this.emit(':tellWithCard', speechOutput, this.t('SKILL_NAME'), cardOutput);
+                // this.emit(':tell', speechOutput);
+                callback(sessionAttributes,
+                buildSpeechletResponse("Error connecting to server", cardOutput, speechOutput, repromptText, shouldEndSession));
         });
-
-
 }
-
 
 // --------------- Events -----------------------
 
@@ -298,12 +154,10 @@ function onIntent(intentRequest, session, callback) {
 
     console.log(`Intent name: ${intentName}`);
     // Dispatch to your skill's intent handlers
-    if (intentName === 'CompareFood') {
-        compareFoods(intent, session, callback);
-    } else if (intentName === 'CompareAnyFood') {
-        compareAnyTwoFoods(intent, session, callback);
+    if (intentName === 'GetPrice') {
+        getPrice(intent, session, callback);
     } else if (intentName === 'AMAZON.HelpIntent') {
-        getWelcomeResponse(callback);
+        getHelpResponse(callback);
     } else if (intentName === 'AMAZON.StopIntent' || intentName === 'AMAZON.CancelIntent') {
         handleSessionEndRequest(callback);
     } else {

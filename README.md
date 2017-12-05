@@ -1,2 +1,2 @@
-# alexa-skill-compare-food
-Compare Food - an Alexa Skill to compare two food items
+# Cryptocurrency To Rupees
+An Alexa Skill to get the latest price of Ethereum in Indian Rupees
